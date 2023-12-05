@@ -17,4 +17,5 @@ func main() {
 
 	inflst := influxstore.New(client)
 	inflst.WriteDataPoint(org, bucket)
+	inflst.QueryFlux(org)
 }

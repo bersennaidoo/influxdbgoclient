@@ -2,6 +2,7 @@ package influxstore
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -37,4 +38,37 @@ func (inf *InfluxStore) WriteDataPoint(org, bucket string) {
 		log.Printf("Data Point stored in bucket")
 	}
 	log.Printf("Done")
+}
+
+func (inf *InfluxStore) QueryFlux(org string) {
+	queryAPI := inf.client.QueryAPI(org)
+	query := `from(bucket: "buc")
+            |> range(start: -10m)
+            |> filter(fn: (r) => r._measurement == "measurement1")`
+	results, err := queryAPI.Query(context.Background(), query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for results.Next() {
+		fmt.Println(results.Record())
+	}
+	if err := results.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	query = `from(bucket: "buc")
+              |> range(start: -10m)
+              |> filter(fn: (r) => r._measurement == "measurement1")
+              |> mean()`
+	results, err = queryAPI.Query(context.Background(), query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for results.Next() {
+		fmt.Println(results.Record())
+	}
+	if err := results.Err(); err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Aggregate Done!!!")
 }
